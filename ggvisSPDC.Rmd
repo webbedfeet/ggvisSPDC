@@ -3,7 +3,7 @@ title: "ggvis: Next generation Grammar of Graphics"
 author: "Abhijit Dasgupta <br/>@webbedfeet <br/>abhijit@datacommunitydc.org"
 date: "March 12, 2015"
 output: ioslides_presentation
-# runtime: shiny
+runtime: shiny
 ---
 <style>
 body{background-color:white;}
@@ -232,7 +232,7 @@ mtcars %>% ggvis(~wt, ~mpg) %>%
 + [Additional examples](http://rpackages.ianhowson.com/cran/ggvis/)
 + [Interactivity](http://ggvis.rstudio.com/interactivity.html)
 + [Customization](http://ggvis.rstudio.com/properties-scales.html)
-+ A ggplot and ggvis comparison by [Jim Hester](http://jimhester.github.io/ggplot2ToGgvis/))
++ A ggplot and ggvis comparison by [Jim Hester](http://jimhester.github.io/ggplot2ToGgvis/)
 
 ## Maps (from Bob Rudis' [site](http://rud.is/b/2014/12/29/making-static-interactive-maps-with-ggvis-using-ggvis-maps-wshiny/))
 
