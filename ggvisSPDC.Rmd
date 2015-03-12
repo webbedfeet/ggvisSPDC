@@ -167,7 +167,15 @@ mtcars %>% group_by(am) %>%
   scale_nominal('stroke', range=c('green','orange'))
 ```
 
+## Using derived statistics ([link](http://rpackages.ianhowson.com/cran/ggvis/man/dplyr-ggvis.html))
+```{r, fig.height=3}
+base <- mtcars %>% ggvis(~mpg, ~cyl) %>% layer_points()
+base %>% group_by(cyl) %>% summarise(mpg = mean(mpg)) %>%
+  layer_points(fill := "red", size := 100)
+```
+
 ## Interactive visualization
+
 ```{r, fig.height=2, warning=FALSE, message=FALSE, echo=FALSE}
 mtcars %>% ggvis(~wt, ~mpg) %>% layer_points() %>% 
  layer_smooths(se=T, span=input_slider(0.1,0.9,value=0.75,step=0.05,
@@ -196,8 +204,18 @@ mtcars %>% mutate(name=row.names(mtcars)) %>%
 
 ```
 
+
+## Summarizing models
+```{r, fig.height=3, warning=FALSE, message=FALSE, error=FALSE}
+mtcars %>% ggvis(~wt, ~mpg) %>%
+  layer_points() %>%
+  layer_model_predictions(model = "lm", stroke:='black') %>%
+  layer_model_predictions(model = "loess", stroke := "red") 
+```
+
 ## Resources
 
++ [ggvis.rstudio.com](http://ggvis.rstudio.com)
 + [Tutorial](http://ggvis.rstudio.com/ggvis-basics.html)
 + [Additional examples](http://rpackages.ianhowson.com/cran/ggvis/)
 + [Interactivity](http://ggvis.rstudio.com/interactivity.html)
