@@ -1,0 +1,257 @@
+---
+title: "ggvis: Next generation Grammar of Graphics"
+author: "Abhijit Dasgupta <br/>Statistical Programming DC"
+date: "March 12, 2015"
+output: ioslides_presentation
+# runtime: shiny
+---
+<style>
+body{background-color:white;}
+article{color:black;}
+</style>
+```{r preamble, echo=FALSE, results='hide', warning=FALSE, message=FALSE}
+library(knitr)
+library(dplyr)
+library(ggplot2)
+library(ggvis)
+```
+
+## What is ggvis?
+
++ A data visualization package in R
++ Builds graphics declaratively using layers in the spirit of [ggplot2](http://ggplot2.org)
++ Produces graphics rendered in a web browser using [*Vega*](https://github.com/trifacta/vega/), 
+a visualization grammar built on top of D3
++ Produces interactive graphics leveraging the power of Shiny
+
+
+## ggplot2 vs ggvis
+
+```{r, fig.height=4.5}
+ggplot(mtcars, aes(x=wt, y=mpg))+
+  geom_point()
+```
+
+## ggplot2 vs ggvis
+
+```{r, fig.height=3.5}
+mtcars %>% 
+  ggvis(x= ~wt, y= ~mpg) %>% 
+  layer_points()
+```
+
+## ggplot2 vs ggvis
+
+```{r, fig.height=3.5}
+mtcars %>% 
+  ggvis(x= ~wt, y= ~mpg) %>% 
+  layer_points() %>% layer_smooths()
+```
+
+## ggplot2 vs ggvis
+
+ggplot2   |  ggvis
+----------|---------------
+geom      | layer (names end with "s")
+stat      | compute
+aes()     | props()
+
+<p>
+
+- ggvis uses a function interface, so chaining is done using `%>%` rather than `+`
+- ggvis uses `x = ~wt` instead of `x = wt` (will come back to this)
+- Using `ggvis()` without any layers is akin to `qplot`
+
+# ggvis semantics
+
+## Basic template
+```{r, results='hide',eval=FALSE}
+<data>  %>% 
+  ggvis(~<x property>,~<y property>, 
+        fill = ~<fill property>, ...) %>% 
+  layer_<marks>()`
+
+```
+
+
+`<marks>` can be
+ `arcs`, `bars`, `densities`, `freqpolys`,
+`histograms`, 
+`images`, 
+`lines`, 
+`paths`, 
+`model_predictions`, `points`, `rects`, `ribbons`, `smooths`, `text`
+
+## Components of a ggvis visualization
+
+```{r, eval=FALSE}
+faithful %>% 
+    ggvis(~waiting, ~eruptions, fill := "red") %>% 
+    layer_points() %>% 
+    add_axis("y", title = "Duration of eruption (m)", 
+             values = c(2, 3, 4, 5), subdivide = 9) %>% 
+    add_axis("x", title = "Time since previous eruption (m)")
+
+```
+<p>
+
++ Data
++ A coordinate system
++ Marks
++ Corresponding properties
+
+# Some new semantics
+
+## `=` and `:=`
+
++ `=` *maps* a property to a data value or a set of data values
++ `:=` *sets* a property to a specific value
+
+```{r, fig.height=3}
+pressure %>% ggvis(~temperature, ~pressure, fill = "red") %>% 
+  layer_points()
+```
+
+
+## `=` and `:=` 
+
++ `=` *maps* a property to a data value or a set of data values 
++ `:=` *sets* a property to a specific value
+
+
+
+```{r, fig.height=3}
+pressure %>% ggvis(~temperature, ~pressure, fill := "red") %>% 
+  layer_points()
+```
+
+## `=` and `:=`
+
+See [http://ggvis.rstudio.com/properties-scales.html](http://ggvis.rstudio.com/properties-scales.html) for more details.
+
+# More new semantics
+
+## Objects in ggvis
+
+ggvis code accepts three types of objects: 
+
++ A string of letters, without quotes, refers to an *object* name, and will be searched in the current environment
++ A tilde `~` at the start of the string will be treated as a *variable* name, and will be searched in the current data frame
++ A string in quotes will be treated as a *raw value*. 
+
+## Objects in ggvis
+
+```{r, fig.height=3}
+shade <- 'red'
+mtcars %>% ggvis(~disp, ~mpg) %>% 
+  layer_points(fill= ~factor(cyl), size :=300, stroke := shade, 
+               strokeWidth :=6) %>% add_legend('fill',title='Cylinders')
+```
+
+# Examples
+
+## Interplay of dplyr and ggvis
+```{r, fig.height=3.5, fig.width=6, warning=FALSE, message=FALSE}
+mtcars %>% group_by(am) %>% 
+  ggvis(~mpg, ~hp) %>% layer_smooths(stroke = ~factor(am)) %>% 
+    layer_points(fill = ~factor(am))
+
+```
+
+## Interplay of dplyr and ggvis
+```{r, fig.height=3.5, fig.width=6, warning=FALSE, message=FALSE}
+mtcars %>% group_by(am) %>% 
+  ggvis(~mpg, ~hp) %>% layer_smooths(stroke = ~factor(am)) %>% 
+    layer_points(fill = ~factor(am)) %>% 
+  scale_nominal('fill', range=c("green","orange")) %>% 
+  scale_nominal('stroke', range=c('green','orange'))
+```
+
+## Interactive visualization
+```{r, fig.height=2, warning=FALSE, message=FALSE, echo=FALSE}
+mtcars %>% ggvis(~wt, ~mpg) %>% layer_points() %>% 
+ layer_smooths(se=T, span=input_slider(0.1,0.9,value=0.75,step=0.05,
+                                       label='span'))
+```
+
+## Interactive visualization
+```{r, fig.height=2, warning=FALSE, message=FALSE, eval=FALSE}
+mtcars %>% ggvis(~wt, ~mpg) %>% layer_points() %>% 
+ layer_smooths(se=T,
+   span=input_slider(0.1,0.9,value=0.75,step=0.05,label='span'))
+```
+
+## Tooltips
+```{r,echo=FALSE} 
+mtcars %>% mutate(name=row.names(mtcars)) %>% 
+  ggvis(~wt, ~mpg, key := ~name) %>% layer_points(size :=100) %>% 
+  add_tooltip(function(df) df$name)
+```
+
+## Tooltips
+```{r,eval=F, eval=FALSE}
+mtcars %>% mutate(name=row.names(mtcars)) %>% 
+  ggvis(~wt, ~mpg, key := ~name) %>% layer_points() %>% 
+  add_tooltip(function(df) df$name)
+
+```
+
+## Resources
+
++ [Tutorial](http://ggvis.rstudio.com/ggvis-basics.html)
++ [Additional examples](http://rpackages.ianhowson.com/cran/ggvis/)
++ [Interactivity](http://ggvis.rstudio.com/interactivity.html)
++ [Customization](http://ggvis.rstudio.com/properties-scales.html)
+
+## Maps (from Bob Rudis' [site](http://rud.is/b/2014/12/29/making-static-interactive-maps-with-ggvis-using-ggvis-maps-wshiny/))
+
+![][id]
+```{r, echo=FALSE, eval=FALSE, message=FALSE, error=FALSE, warning=FALSE}
+library(ggvis)
+library(ggplot2)
+library(rgdal)
+library(rgeos)
+library(magrittr)
+library(dplyr)
+library(RColorBrewer)
+library(data.table)
+library(maptools)
+
+us <- readOGR("data/us.geojson", "OGRGeoJSON")
+us <- us[!us$STATEFP %in% c("02", "15", "72"),]
+
+us_aea <- spTransform(us, CRS("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs"))
+
+map <- ggplot2::fortify(us_aea, region="GEOID")
+
+droughts <- read.csv("data/dm_export_county_20141223.csv")
+droughts$id <- sprintf("%05d", as.numeric(as.character(droughts$FIPS)))
+droughts$total <- with(droughts, (D0+D1+D2+D3+D4)/5)
+
+map_d <- merge(map, droughts, all.x=TRUE)
+
+ramp <- colorRampPalette(c("white", brewer.pal(n=9, name="YlOrRd")), space="Lab")
+
+map_d$fill_col <- as.character(cut(map_d$total, seq(0,100,10), include.lowest=TRUE, labels=ramp(10)))
+map_d$fill_col <- ifelse(is.na(map_d$fill_col), "#FFFFFF", map_d$fill_col)
+
+# drought_values <- function(x) {
+#   if(is.null(x) | !(x$id %in% droughts$id)) return(NULL)
+#   y <- droughts %>% filter(id==x$id) %>% select(1,3,4,6:10)
+#   sprintf("<table width='100%%'>%s</table>",
+#           paste0("<tr><td style='text-align:left'>", names(y),
+#          ":</td><td style='text-align:right'>", format(y), collapse="</td></tr>"))
+# }
+
+map_d %>%
+  group_by(group, id) %>%
+  ggvis(~long, ~lat) %>%
+  layer_paths(fill:=~fill_col, strokeOpacity := 0.5, strokeWidth := 0.25) %>%
+  #add_tooltip(drought_values, "hover") %>%
+  #Çhide_legend("fill") %>%
+  hide_axis("x") %>% hide_axis("y")# %>%
+  #set_options(width=900, height=600, keep_aspect=TRUE)
+
+```
+
+[id]: data/plot_231142944.svg
