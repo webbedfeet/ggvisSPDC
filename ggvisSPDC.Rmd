@@ -100,6 +100,18 @@ faithful %>%
 + Marks
 + Corresponding properties
 
+## Components of a ggvis visualization
+
+```{r, echo=FALSE}
+faithful %>% 
+    ggvis(~waiting, ~eruptions, fill := "red") %>% 
+    layer_points() %>% 
+    add_axis("y", title = "Duration of eruption (m)", 
+             values = c(2, 3, 4, 5), subdivide = 9) %>% 
+    add_axis("x", title = "Time since previous eruption (m)")
+
+```
+
 # Some new semantics
 
 ## `=` and `:=`
@@ -220,6 +232,7 @@ mtcars %>% ggvis(~wt, ~mpg) %>%
 + [Additional examples](http://rpackages.ianhowson.com/cran/ggvis/)
 + [Interactivity](http://ggvis.rstudio.com/interactivity.html)
 + [Customization](http://ggvis.rstudio.com/properties-scales.html)
++ A ggplot and ggvis comparison by [Jim Hester](http://jimhester.github.io/ggplot2ToGgvis/))
 
 ## Maps (from Bob Rudis' [site](http://rud.is/b/2014/12/29/making-static-interactive-maps-with-ggvis-using-ggvis-maps-wshiny/))
 
